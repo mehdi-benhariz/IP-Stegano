@@ -1,8 +1,11 @@
 import cv2
 import numpy as np
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import Image, StringVar, filedialog, ttk, END
+import BitHiding
 
+# Tkinter documentation:
+# https://www.pythontutorial.net/tkinter/
 
 class SteganographyApp:
     def __init__(self, master):
@@ -10,29 +13,104 @@ class SteganographyApp:
         master.title("Steganography Project App")
         master.geometry("600x600")
 
-        button_width = 20
-        button_height = 5
+        # Setup for dropdown menu
+        options = [
+            "None Selected",
+            "Bit Hiding",
+            "Image Originality Token"
+        ]
+        selected = StringVar()
+        selected.set(options[0])
 
-        # create buttons and text field
-        self.load_button = tk.Button(master, text="Load Image", command=self.load_image, bg="#4CAF50", fg="white",
+        dropdown = ttk.Combobox(master, textvariable=selected)
+        dropdown['values'] = options
+        dropdown['state'] = 'readonly'
+        dropdown.grid(row=4, column=0, padx=10, pady=10)
+
+        # Setup for the text entry box
+        def modifyText(text):
+            global textBox
+            textBox = text.get()
+        textEntry = StringVar()
+        textEntry.trace("w", lambda name, index, mode, textEntry=textEntry: modifyText(textEntry))
+
+        #TODO This doesn't work for styling the ComboBox... documentation didn't really help. I'll look into it later
+        #self.style = ttk.Style(self)
+        #self.style.configure('TCombobox', bg="#ff0000", fg="white", width=button_width, height=button_height)
+
+        # Function updates buttons depending on the type of steganography selected
+        def updateButtons(event):
+            global button1, button2, button3, button4, label, text_entry
+
+            button_width = 20
+            button_height = 5
+
+            # Remove everything
+            try:
+                button1.grid_remove()
+            except:
+                # Do nothing, exception is only called if the widget does not already exist
+                pass
+            try:
+                button2.grid_remove()
+            except:
+                pass
+            try:
+                button3.grid_remove()
+            except:
+                pass
+            try:
+                button4.grid_remove()
+            except:
+                pass
+            try:
+                label.grid_remove()
+            except:
+                pass
+            try:
+                text_entry.grid_remove()
+            except:
+                pass
+
+            # If an option is selected, place everything
+            if dropdown.get() != options[0]:
+                
+                button1 = tk.Button(master, text="", bg="#4CAF50", fg="white",
                                      width=button_width, height=button_height)
-        self.load_button.grid(row=0, column=0, padx=10, pady=10)
-
-        self.write_button = tk.Button(master, text="Write Text", command=self.write_text, bg="#2196F3", fg="white",
+                button1.grid(row=0, column=0, padx=10, pady=10)
+                button2 = tk.Button(master, text="", bg="#2196F3", fg="white",
                                       width=button_width, height=button_height)
-        self.write_button.grid(row=0, column=1, padx=10, pady=10)
-
-        self.token_button = tk.Button(master, text="Generate Token", command=self.generate_token, bg="#9C27B0", fg="white",
+                button2.grid(row=0, column=1, padx=10, pady=10)
+                button3 = tk.Button(master, text="", bg="#9C27B0", fg="white",
                                       width=button_width, height=button_height)
-        self.token_button.grid(row=1, column=0, padx=10, pady=10)
-
-        self.verify_button = tk.Button(master, text="Verify Images", command=self.open_verify_window, bg="#FF9800", fg="white",
+                button3.grid(row=1, column=0, padx=10, pady=10)
+                button4 = tk.Button(master, text="", bg="#FF9800", fg="white",
                                        width=button_width, height=button_height)
-        self.verify_button.grid(row=1, column=1, padx=10, pady=10)
+                button4.grid(row=1, column=1, padx=10, pady=10)
+                label = tk.Label(master, text="", wraplength= 300)
+                label.grid(row=2, column=0)
+                text_entry = tk.Entry(master, width=50, textvariable= textEntry)
+                text_entry.grid(row=3, column=0, padx=10, pady=10, columnspan=2, sticky="nsew")
+                text_entry.delete(0, END)
 
-        self.text_entry = tk.Entry(master, width=50)
-        self.text_entry.grid(row=2, column=0, padx=10,
-                             pady=10, columnspan=2, sticky="nsew")
+                # Depending on which dropdown option is selected, switch the buttons labels and functions appropriately
+                match dropdown.get():
+                    case "Bit Hiding":
+                        button1.config(text="Select Image 1", command=self.upload_image1)
+                        button2.config(text="Select Image 2", command=self.upload_image2)
+                        button3.config(text="Run", command=self.runBitHider)
+                        label.config(text="Enter the number of bits to use to hide the second image in the first")
+                        button4.grid_forget()
+                    case "Image Originality Token":
+                        button1.config(text="Load Image", command=self.load_image)
+                        button2.config(text="Write Text", command=self.write_text)
+                        button3.config(text="Generate Token", command=self.generate_token)
+                        button4.config(text="Verify Images", command=self.open_verify_window)
+                        label.config(text="TODO put a description of what to do here")
+                    
+
+        # Event handler that will run the updateButtons function upon combobox change
+        dropdown.bind('<<ComboboxSelected>>', updateButtons)
 
     def load_image(self):
         filename = filedialog.askopenfilename()
@@ -40,7 +118,7 @@ class SteganographyApp:
         # TODO display the image in the GUI
 
     def write_text(self):
-        text = self.text_entry.get()
+        text = textBox
         print("Write Text:", text)
         # TODO get the text message from the input field in the GUI
 
@@ -63,14 +141,27 @@ class SteganographyApp:
         image2_button.pack(pady=10)
 
     def upload_image1(self):
+        global image1
         filename = filedialog.askopenfilename()
         image1 = cv2.imread(filename)
-        # TODO store the first image and close the window
+        # TODO Have the image appear on the GUI?
 
     def upload_image2(self):
+        global image2
         filename = filedialog.askopenfilename()
         image2 = cv2.imread(filename)
-        # TODO store the second image and close the window
+        # TODO Have the image appear on the GUI?
+
+    def runBitHider(self):
+        bitHidingResult = BitHiding.BitHiding(image1, image2, int(textBox))
+        cv2.imshow("Original 1, Bit Modified 1", np.concatenate([image1, bitHidingResult[0]], axis=1))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        cv2.imshow("Original 2, Bit Modified, Averaged Bit Modified 2", np.concatenate(
+                [image2, bitHidingResult[1], bitHidingResult[2]], axis=1))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 
 def open_verify_window(self):
@@ -102,11 +193,9 @@ def open_verify_window(self):
         width=button_width, height=button_height)
     verify_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 
-
 def verify_images(self):
     # TODO finish this function
     pass
-
 
 root = tk.Tk()
 app = SteganographyApp(root)

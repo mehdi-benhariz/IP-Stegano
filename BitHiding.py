@@ -1,10 +1,6 @@
-import BitHiding
-import cv2
 import numpy as np
 
 # Histogram equalization
-
-
 def equalize_histogram(image):
     histogram = np.histogram(image, bins=np.arange(257), density=True)[0]
     cdf = np.cumsum(histogram)
