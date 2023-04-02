@@ -36,7 +36,7 @@ def BitHiding(image1, image2, bits):
     # Retrieve the size of the images
     height, width = image1.shape[:2]
 
-    # Make two new zeros arrays that are the same size as the original images
+    # Make a new zeros arrays that are the same size as the original images
     newImage1 = np.zeros((height, width, 3), dtype=np.uint8)
 
     # Examine each pixel

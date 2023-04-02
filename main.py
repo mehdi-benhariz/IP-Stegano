@@ -1,8 +1,10 @@
 import cv2
+from cv2 import IMREAD_GRAYSCALE
 import numpy as np
 import tkinter as tk
 from tkinter import Image, StringVar, filedialog, ttk, END
 import BitHiding
+import BitHidingBW
 
 # Tkinter documentation:
 # https://www.pythontutorial.net/tkinter/
@@ -16,7 +18,8 @@ class SteganographyApp:
         # Setup for dropdown menu
         options = [
             "None Selected",
-            "Bit Hiding",
+            "Color Bit Hiding",
+            "Black and White Bit Hiding",
             "Image Originality Token"
         ]
         selected = StringVar()
@@ -95,11 +98,17 @@ class SteganographyApp:
 
                 # Depending on which dropdown option is selected, switch the buttons labels and functions appropriately
                 match dropdown.get():
-                    case "Bit Hiding":
+                    case "Color Bit Hiding":
                         button1.config(text="Select Image 1", command=self.upload_image1)
                         button2.config(text="Select Image 2", command=self.upload_image2)
                         button3.config(text="Run", command=self.runBitHider)
                         label.config(text="Enter the number of bits to use to hide the second image in the first")
+                        button4.grid_forget()
+                    case "Black and White Bit Hiding":
+                        button1.config(text="Select Color Image", command=self.upload_image1)
+                        button2.config(text="Select Black and White Image", command=self.upload_black_and_white_image, wraplength= 100)
+                        button3.config(text="Run", command=self.runBitHiderBW)
+                        label.config(text="Enter one, two, or three bits to use for the black and white image")
                         button4.grid_forget()
                     case "Image Originality Token":
                         button1.config(text="Load Image", command=self.load_image)
@@ -107,7 +116,7 @@ class SteganographyApp:
                         button3.config(text="Generate Token", command=self.generate_token)
                         button4.config(text="Verify Images", command=self.open_verify_window)
                         label.config(text="TODO put a description of what to do here")
-                    
+        
 
         # Event handler that will run the updateButtons function upon combobox change
         dropdown.bind('<<ComboboxSelected>>', updateButtons)
@@ -152,6 +161,12 @@ class SteganographyApp:
         image2 = cv2.imread(filename)
         # TODO Have the image appear on the GUI?
 
+    def upload_black_and_white_image(self):
+        global imageBW
+        filename = filedialog.askopenfilename()
+        imageBW = cv2.imread(filename, IMREAD_GRAYSCALE)
+        # TODO Have the image appear on the GUI?
+
     def runBitHider(self):
         bitHidingResult = BitHiding.BitHiding(image1, image2, int(textBox))
         cv2.imshow("Original 1, Bit Modified 1", np.concatenate([image1, bitHidingResult[0]], axis=1))
@@ -160,6 +175,17 @@ class SteganographyApp:
 
         cv2.imshow("Original 2, Bit Modified, Averaged Bit Modified 2", np.concatenate(
                 [image2, bitHidingResult[1], bitHidingResult[2]], axis=1))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def runBitHiderBW(self):
+        bitHidingResultBW = BitHidingBW.BitHidingBW(image1, imageBW, int(textBox))
+
+        cv2.imshow("Original 1, Bit Modified 1", np.concatenate([image1, bitHidingResultBW[0]], axis=1))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        cv2.imshow("Original 2, Bit Modified", np.concatenate([imageBW, bitHidingResultBW[1]], axis=1))
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
