@@ -1,12 +1,5 @@
 import numpy as np
-
-# Histogram equalization
-def equalize_histogram(image):
-    histogram = np.histogram(image, bins=np.arange(257), density=True)[0]
-    cdf = np.cumsum(histogram)
-    intensities = np.uint8(np.round(255. * cdf))
-    return intensities[image]
-
+import GeneralFunctions
 
 '''
 This will "hide" a secondary image in the first image by replacing the least significant
@@ -60,6 +53,6 @@ def BitHiding(image1, image2, bits):
     newImage2 = np.array(newImage1 % 2**bits * 256 / 2**bits, dtype=np.uint8)
 
     # Take a weighted average of the newImage2 and the histogram equalized newImage2
-    modifiedImage2 = equalize_histogram(newImage2) // 3 + newImage2 // 2
+    modifiedImage2 = GeneralFunctions.equalize_histogram(newImage2) // 3 + newImage2 // 2
 
     return [newImage1, newImage2, modifiedImage2]

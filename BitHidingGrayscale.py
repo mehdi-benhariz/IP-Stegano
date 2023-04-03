@@ -17,11 +17,10 @@ An array with two elements:
 Requirements/Assumptions: 
     1. The two images must be the same size. 
     2. The first image must have three channels and the second image must have one channel.
-    3. bits must be between 1 and 3 (1 bit -> 8 intensities, 2 bit -> 64 intensities, 3 bit -> 512 intensities)
-        Note: if three bits are selected, then the red channel will only use 2 bits
+    3. bits must be either 1 or 2 (1 bit -> 8 intensities, 2 bit -> 64 intensities, 3 bit -> 512 intensities, which is too many!)
 '''
 
-def BitHidingBW(image1, image2, bits):
+def BitHidingGrayscale(image1, image2, bits):
 
     # Retrieve the size of the images
     height, width = image1.shape[:2]
@@ -33,22 +32,21 @@ def BitHidingBW(image1, image2, bits):
     # Examine each pixel
     for i in range(height):
         for j in range(width):
-            # Take the least significant bits from image1
-            bin1 = [int(image1[i, j, 0] % 2**bits), int(image1[i, j, 1] %
-                                                        2**bits), int(image1[i, j, 2] % 2**bits)]
-
-            # Take the binary adjusted value at the pixel in image 2
-            # ex. if one bit allocated, pixel intensity needs to be divided by 32 and converted to binary
-            #       (32 is (2^1)^3), where 2 is one binary bit, 1 is how many bits, and 3 is the three channels
+            # Convert the pixel in image2 to be a valid intensity level
+            #   ex. if one bit is allowed, then there are only 8 valid intensity levels
+            #   ex. if two bits are allowed, then there are 64 possible intensity levels
             pixelIntensity = format(int(image2[i, j] // (256 / (2**bits)**3)), '08b')
             
-            # Take the corresponding binary bits for the given pixel intensity
-            # ex. if one bit is allocated
-             # TODO FIX THIS FOR 3 BITS!!!
+            # Take the least significant bits from image1 and store them in bin1
+            bin1 = [int(image1[i, j, 0] % 2**bits), int(image1[i, j, 1] %
+                                                        2**bits), int(image1[i, j, 2] % 2**bits)]
+            
+            # Take the corresponding binary bits for the given pixel intensity and splice it into thirds, placing that into bin2
+            # ex. If using only 1 bit, then this splits 00000110 in binary into 1, 1, and 0   
             bin2 = [int(pixelIntensity[8 - 3 * bits:8 - 2 * bits]), int(pixelIntensity[8 - 2 * bits: 8 - bits]), 
                     int(pixelIntensity[8 - bits:])]
 
-            # Assign the most significant bits from image 2 into the least significant bits of image 1
+            # Assign the bits from image 2 into the least significant bits of image 1
             newImage1[i, j, 0] = image1[i, j, 0] - bin1[0] + bin2[0]
             newImage1[i, j, 1] = image1[i, j, 1] - bin1[1] + bin2[1]
             newImage1[i, j, 2] = image1[i, j, 2] - bin1[2] + bin2[2]
@@ -58,7 +56,10 @@ def BitHidingBW(image1, image2, bits):
     for i in range(width):
         for j in range(height):
 
-            bin3 = [int(newImage1[i, j, 0] % 2**bits), int(newImage1[i, j, 1] % 2**bits), int(newImage1[i, j, 2] % 2**bits)]          
+            # Retrieve the bits from the color channels
+            bin3 = [int(newImage1[i, j, 0] % 2**bits), int(newImage1[i, j, 1] % 2**bits), int(newImage1[i, j, 2] % 2**bits)]    
+
+            # Assign an intensity level using the retrieved bits      
             newImage2[i,j] = int((bin3[0] * 2**(bits * 2) + bin3[1] * 2**bits + bin3[2])) * (256 / (2**bits)**3)
 
     return [newImage1, newImage2]

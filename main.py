@@ -2,9 +2,8 @@ import cv2
 from cv2 import IMREAD_GRAYSCALE
 import numpy as np
 import tkinter as tk
-from tkinter import Image, StringVar, filedialog, ttk, END
-import BitHiding
-import BitHidingBW
+from tkinter import StringVar, filedialog, ttk, END
+import BitHiding, BitHidingGrayscale
 
 # Tkinter documentation:
 # https://www.pythontutorial.net/tkinter/
@@ -15,11 +14,14 @@ class SteganographyApp:
         master.title("Steganography Project App")
         master.geometry("600x600")
 
+        button_width = 20
+        button_height = 5
+
         # Setup for dropdown menu
         options = [
             "None Selected",
             "Color Bit Hiding",
-            "Black and White Bit Hiding",
+            "Grayscale Bit Hiding",
             "Image Originality Token"
         ]
         selected = StringVar()
@@ -44,9 +46,6 @@ class SteganographyApp:
         # Function updates buttons depending on the type of steganography selected
         def updateButtons(event):
             global button1, button2, button3, button4, label, text_entry
-
-            button_width = 20
-            button_height = 5
 
             # Remove everything
             try:
@@ -104,11 +103,11 @@ class SteganographyApp:
                         button3.config(text="Run", command=self.runBitHider)
                         label.config(text="Enter the number of bits to use to hide the second image in the first")
                         button4.grid_forget()
-                    case "Black and White Bit Hiding":
+                    case "Grayscale Bit Hiding":
                         button1.config(text="Select Color Image", command=self.upload_image1)
-                        button2.config(text="Select Black and White Image", command=self.upload_black_and_white_image, wraplength= 100)
-                        button3.config(text="Run", command=self.runBitHiderBW)
-                        label.config(text="Enter one, two, or three bits to use for the black and white image")
+                        button2.config(text="Select Grayscale Image", command=self.upload_grayscale_image, wraplength= 100)
+                        button3.config(text="Run", command=self.runBitHiderGrayscale)
+                        label.config(text="Enter one or bits to use for the grayscale image")
                         button4.grid_forget()
                     case "Image Originality Token":
                         button1.config(text="Load Image", command=self.load_image)
@@ -161,10 +160,10 @@ class SteganographyApp:
         image2 = cv2.imread(filename)
         # TODO Have the image appear on the GUI?
 
-    def upload_black_and_white_image(self):
-        global imageBW
+    def upload_grayscale_image(self):
+        global imageGrayscale
         filename = filedialog.askopenfilename()
-        imageBW = cv2.imread(filename, IMREAD_GRAYSCALE)
+        imageGrayscale = cv2.imread(filename, IMREAD_GRAYSCALE)
         # TODO Have the image appear on the GUI?
 
     def runBitHider(self):
@@ -178,14 +177,14 @@ class SteganographyApp:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def runBitHiderBW(self):
-        bitHidingResultBW = BitHidingBW.BitHidingBW(image1, imageBW, int(textBox))
+    def runBitHiderGrayscale(self):
+        bitHidingResultBW = BitHidingGrayscale.BitHidingGrayscale(image1, imageGrayscale, int(textBox))
 
         cv2.imshow("Original 1, Bit Modified 1", np.concatenate([image1, bitHidingResultBW[0]], axis=1))
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        cv2.imshow("Original 2, Bit Modified", np.concatenate([imageBW, bitHidingResultBW[1]], axis=1))
+        cv2.imshow("Original 2, Bit Modified", np.concatenate([imageGrayscale, bitHidingResultBW[1]], axis=1))
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
