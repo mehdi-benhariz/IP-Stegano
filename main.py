@@ -3,7 +3,7 @@ from cv2 import IMREAD_GRAYSCALE
 import numpy as np
 import tkinter as tk
 from tkinter import StringVar, filedialog, ttk, END
-import BitHiding, BitHidingGrayscale
+import BitHiding, BitHidingGrayscale, PrinterHiding
 
 # Tkinter documentation:
 # https://www.pythontutorial.net/tkinter/
@@ -22,7 +22,8 @@ class SteganographyApp:
             "None Selected",
             "Color Bit Hiding",
             "Grayscale Bit Hiding",
-            "Image Originality Token"
+            "Image Originality Token",
+            "Hidden Printer Info"
         ]
         selected = StringVar()
         selected.set(options[0])
@@ -115,8 +116,13 @@ class SteganographyApp:
                         button3.config(text="Generate Token", command=self.generate_token)
                         button4.config(text="Verify Images", command=self.open_verify_window)
                         label.config(text="TODO put a description of what to do here")
+                    case "Hidden Printer Info":
+                        button1.config(text="Select Color Image", command=self.upload_image1)
+                        button2.config(text="Select Grayscale Image", command=self.upload_grayscale_image, wraplength= 100)
+                        button3.config(text="Run", command=self.runPrinterHiding)
+                        label.config(text="Enter: \"X ########\" where # is serial number of printer and X is G for grayscale, C for color")
+                        button4.grid_forget()
         
-
         # Event handler that will run the updateButtons function upon combobox change
         dropdown.bind('<<ComboboxSelected>>', updateButtons)
 
@@ -188,6 +194,22 @@ class SteganographyApp:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+    def runPrinterHiding(self):
+        printerHiding = PrinterHiding.PrinterHiding(textBox[2:], imageGrayscale, True)
+
+        # Prints the information hidden in the printed copy
+        print(printerHiding[2])
+
+        # Formatting depending on if gray or colored image 
+        if textBox[0] == 'G':
+            cv2.imshow("Original, Printed Copy Code, and Final Printed Copy", np.concatenate([cv2.cvtColor(imageGrayscale, cv2.COLOR_GRAY2BGR), cv2.cvtColor(printerHiding[0], cv2.COLOR_GRAY2BGR), printerHiding[1]], axis=1))
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        else:
+            printerHiding = PrinterHiding.PrinterHiding(textBox[2:], image1, False)
+            cv2.imshow("Original and Printed Copy", np.concatenate([image1, cv2.cvtColor(printerHiding[0], cv2.COLOR_GRAY2BGR), printerHiding[1]], axis=1))
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
 def open_verify_window(self):
     verify_window = tk.Toplevel(self.master)

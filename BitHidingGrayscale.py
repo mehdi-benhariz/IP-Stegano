@@ -6,7 +6,7 @@ bits in each color channel of the first image with corresponding bits in the bla
 
 Parameters:
 image1- The color image
-image2- The black and white image
+image2- The grayscale image
 bits- How many bits to use when "hiding" the second image in the first
 
 Returns:
