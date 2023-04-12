@@ -1,8 +1,9 @@
 import cv2
+from cv2 import IMREAD_GRAYSCALE
 import numpy as np
 import tkinter as tk
-from tkinter import Image, StringVar, filedialog, ttk, END
-import BitHiding
+from tkinter import StringVar, filedialog, ttk, END
+import BitHiding, BitHidingGrayscale, PrinterHiding
 
 # Tkinter documentation:
 # https://www.pythontutorial.net/tkinter/
@@ -13,11 +14,16 @@ class SteganographyApp:
         master.title("Steganography Project App")
         master.geometry("600x600")
 
+        button_width = 20
+        button_height = 5
+
         # Setup for dropdown menu
         options = [
             "None Selected",
-            "Bit Hiding",
-            "Image Originality Token"
+            "Color Bit Hiding",
+            "Grayscale Bit Hiding",
+            "Image Originality Token",
+            "Hidden Printer Info"
         ]
         selected = StringVar()
         selected.set(options[0])
@@ -41,9 +47,6 @@ class SteganographyApp:
         # Function updates buttons depending on the type of steganography selected
         def updateButtons(event):
             global button1, button2, button3, button4, label, text_entry
-
-            button_width = 20
-            button_height = 5
 
             # Remove everything
             try:
@@ -95,11 +98,17 @@ class SteganographyApp:
 
                 # Depending on which dropdown option is selected, switch the buttons labels and functions appropriately
                 match dropdown.get():
-                    case "Bit Hiding":
+                    case "Color Bit Hiding":
                         button1.config(text="Select Image 1", command=self.upload_image1)
                         button2.config(text="Select Image 2", command=self.upload_image2)
                         button3.config(text="Run", command=self.runBitHider)
                         label.config(text="Enter the number of bits to use to hide the second image in the first")
+                        button4.grid_forget()
+                    case "Grayscale Bit Hiding":
+                        button1.config(text="Select Color Image", command=self.upload_image1)
+                        button2.config(text="Select Grayscale Image", command=self.upload_grayscale_image, wraplength= 100)
+                        button3.config(text="Run", command=self.runBitHiderGrayscale)
+                        label.config(text="Enter one or bits to use for the grayscale image")
                         button4.grid_forget()
                     case "Image Originality Token":
                         button1.config(text="Load Image", command=self.load_image)
@@ -107,8 +116,13 @@ class SteganographyApp:
                         button3.config(text="Generate Token", command=self.generate_token)
                         button4.config(text="Verify Images", command=self.open_verify_window)
                         label.config(text="TODO put a description of what to do here")
-                    
-
+                    case "Hidden Printer Info":
+                        button1.config(text="Select Color Image", command=self.upload_image1)
+                        button2.config(text="Select Grayscale Image", command=self.upload_grayscale_image, wraplength= 100)
+                        button3.config(text="Run", command=self.runPrinterHiding)
+                        label.config(text="Enter: \"X ########\" where # is serial number of printer and X is G for grayscale, C for color")
+                        button4.grid_forget()
+        
         # Event handler that will run the updateButtons function upon combobox change
         dropdown.bind('<<ComboboxSelected>>', updateButtons)
 
@@ -152,6 +166,12 @@ class SteganographyApp:
         image2 = cv2.imread(filename)
         # TODO Have the image appear on the GUI?
 
+    def upload_grayscale_image(self):
+        global imageGrayscale
+        filename = filedialog.askopenfilename()
+        imageGrayscale = cv2.imread(filename, IMREAD_GRAYSCALE)
+        # TODO Have the image appear on the GUI?
+
     def runBitHider(self):
         bitHidingResult = BitHiding.BitHiding(image1, image2, int(textBox))
         cv2.imshow("Original 1, Bit Modified 1", np.concatenate([image1, bitHidingResult[0]], axis=1))
@@ -163,6 +183,33 @@ class SteganographyApp:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+    def runBitHiderGrayscale(self):
+        bitHidingResultBW = BitHidingGrayscale.BitHidingGrayscale(image1, imageGrayscale, int(textBox))
+
+        cv2.imshow("Original 1, Bit Modified 1", np.concatenate([image1, bitHidingResultBW[0]], axis=1))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        cv2.imshow("Original 2, Bit Modified", np.concatenate([imageGrayscale, bitHidingResultBW[1]], axis=1))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def runPrinterHiding(self):
+        printerHiding = PrinterHiding.PrinterHiding(textBox[2:], imageGrayscale, True)
+
+        # Prints the information hidden in the printed copy
+        print(printerHiding[2])
+
+        # Formatting depending on if gray or colored image 
+        if textBox[0] == 'G':
+            cv2.imshow("Original, Printed Copy Code, and Final Printed Copy", np.concatenate([cv2.cvtColor(imageGrayscale, cv2.COLOR_GRAY2BGR), cv2.cvtColor(printerHiding[0], cv2.COLOR_GRAY2BGR), printerHiding[1]], axis=1))
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        else:
+            printerHiding = PrinterHiding.PrinterHiding(textBox[2:], image1, False)
+            cv2.imshow("Original and Printed Copy", np.concatenate([image1, cv2.cvtColor(printerHiding[0], cv2.COLOR_GRAY2BGR), printerHiding[1]], axis=1))
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
 def open_verify_window(self):
     verify_window = tk.Toplevel(self.master)
