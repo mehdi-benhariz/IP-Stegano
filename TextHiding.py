@@ -1,95 +1,96 @@
 import cv2
-from cryptography.fernet import Fernet
+import numpy as np
 import os
-import base64
 
 
-def encrypt_text(key, text):
-    """
-    Encrypt the given text using the given key.
-    """
-    f = Fernet(key)
-    return f.encrypt(text.encode()).decode()
+def to_bin(data):
+    """Convert `data` to binary format as string"""
+    if isinstance(data, str):
+        return ''.join([format(ord(i), "08b") for i in data])
+    elif isinstance(data, bytes):
+        return ''.join([format(i, "08b") for i in data])
+    elif isinstance(data, np.ndarray):
+        return [format(i, "08b") for i in data]
+    elif isinstance(data, int) or isinstance(data, np.uint8):
+        return format(data, "08b")
+    else:
+        raise TypeError("Type not supported.")
 
 
-def decrypt_text(key, text):
-    """
-    Decrypt the given text using the given key.
-    """
-    f = Fernet(key)
-    return f.decrypt(text.encode()).decode()
-
-
-def hide_text_in_image(image, text, key):
-    """
-    Hides the given text inside the given image using the LSB steganography technique.
-    """
-    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    height, width = grayscale_image.shape[:2]
-
-    text = encrypt_text(key, text)
-    # Convert the text to binary
-    binary_text = ''.join(format(ord(i), '08b') for i in text)
-
-    # Check if the length of the binary text is greater than the number of pixels in the image
-    if len(binary_text) > height * width:
-        raise ValueError('Text is too long to be hidden inside the image')
-
-    # Pad the binary text with zeros if necessary
-    binary_text += '0' * ((height * width) - len(binary_text))
-
-    # Convert the binary text to a list of integers
-    binary_text = [int(binary_text[i:i+8], 2)
-                   for i in range(0, len(binary_text), 8)]
-
-    # Hide the binary text inside the image
-    for i in range(height):
-        for j in range(width):
-            if len(binary_text) == 0:
+def encode(image, secret_data, n_bits=2):
+    # maximum bytes to encode
+    n_bytes = image.shape[0] * image.shape[1] * 3 * n_bits // 8
+    print("[*] Maximum bytes to encode:", n_bytes)
+    print("[*] Data size:", len(secret_data))
+    if len(secret_data) > n_bytes:
+        raise ValueError(
+            f"[!] Insufficient bytes ({len(secret_data)}), need bigger image or less data.")
+    print("[*] Encoding data...")
+    # add stopping criteria
+    if isinstance(secret_data, str):
+        secret_data += "====="
+    elif isinstance(secret_data, bytes):
+        secret_data += b"====="
+    # convert data to binary
+    binary_secret_data = to_bin(secret_data)
+    # size of data to hide
+    data_len = len(binary_secret_data)
+    # use numpy functions for faster operations
+    pixel_iter = np.nditer(image, flags=['multi_index'])
+    for bit in range(n_bits):
+        for pixel in pixel_iter:
+            # modify the least significant bit only if there is still data to store
+            if pixel_iter.multi_index[0] < data_len:
+                pixel_bits = to_bin(pixel)
+                # set the least significant bit of the pixel to the data bit
+                pixel_bits[bit] = binary_secret_data[pixel_iter.multi_index[0]]
+                # convert binary back to integer representation
+                pixel_int = np.packbits(pixel_bits).astype(np.uint8)
+                # update the pixel value in the image
+                pixel[...] = pixel_int
+            # if data is encoded, just break out of the loop
+            if pixel_iter.multi_index[0] >= data_len:
                 break
-            pixel_value = grayscale_image[i, j]
-            new_pixel_value = (pixel_value & ~1) | binary_text.pop(0)
-            grayscale_image[i, j] = new_pixel_value
-
-    # Return the steganographed image
-    return grayscale_image
+    return image
 
 
-def retrieve_text_from_image(image, key):
-    """
-    Retrieve the text hidden inside the given image using the LSB steganography technique
-    and decrypts it using the given key.
-    """
+def decode(image_name, n_bits=1, in_bytes=False):
+    print("[+] Decoding...")
+    # read the image
+    image = cv2.imread(image_name)
+    binary_data = ""
+    for bit in range(1, n_bits+1):
+        for row in image:
+            for pixel in row:
+                r, g, b = to_bin(pixel)
+                binary_data += r[-bit]
+                binary_data += g[-bit]
+                binary_data += b[-bit]
+    # split by 8-bits
+    all_bytes = [binary_data[i: i+8] for i in range(0, len(binary_data), 8)]
+    # convert from bits to characters
+    if in_bytes:
+        # if the data we'll decode is binary data,
+        # we initialize bytearray instead of string
+        decoded_data = bytearray()
+        for byte in all_bytes:
+            # append the data after converting from binary
+            decoded_data.append(int(byte, 2))
+            if decoded_data[-5:] == b"=====":
+                # exit out of the loop if we find the stopping criteria
+                break
+    else:
+        decoded_data = ""
+        for byte in all_bytes:
+            decoded_data += chr(int(byte, 2))
+            if decoded_data[-5:] == "=====":
+                break
+    return decoded_data[:-5]
 
-    # grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    grayscale_image = image
 
-    height, width = grayscale_image.shape[:2]
+image = cv2.imread("peppers_color.tif")
+secret_img = encode(image, "Hello Mehdi", n_bits=2)
 
-    # Retrieve the binary text from the image
-    binary_text = ''
-    for i in range(height):
-        for j in range(width):
-            pixel_value = grayscale_image[i, j]
-            binary_text += str(pixel_value & 1)
+cv2.imwrite("encoded.png", secret_img)
 
-    # Convert the binary text to a string
-    text = ''.join(chr(int(binary_text[i:i+8], 2))
-                   for i in range(0, len(binary_text), 8))
-
-    decrypted_text = decrypt_text(key, text)
-    return decrypted_text
-
-
-img = cv2.imread('peppers_color.tif')
-
-key = base64.urlsafe_b64encode(os.urandom(32))
-
-print(key)
-# key = b"your 32-byte base64-encoded key here"
-text = "Hello World"
-steg_img = hide_text_in_image(img, text, key)
-cv2.imwrite('steg_img.png', steg_img)
-
-retrieved_text = retrieve_text_from_image(steg_img, key)
-print(retrieved_text)
+print(decode("encoded.png", n_bits=2))
