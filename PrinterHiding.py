@@ -17,18 +17,15 @@ Returns:
 
 Requirements/Assumptions: 
     1. The serial number is 8 digits
-    2. The image is at least 14 rows by 7 columns
+    2. The image is at least 27 rows by 7 columns
 '''
 
 def PrinterHiding(serial, image, grayscale):
 
-    # need 14 bits height for range 0-10000
-    # need 7 colunns for dots (split serial # into two numbers)
-
     # Retrieve the size of the images
     height, width = image.shape[:2]
 
-    # The dots will form a grid of 14 rows and 7 columns spread evenly
+    # The dots will form a grid of 27 rows and 7 columns spread evenly
     rowsUsed = height // 27
     columnsUsed = width // 7
 
@@ -57,7 +54,7 @@ def PrinterHiding(serial, image, grayscale):
     finalPrint[hiddenPrint == 255] = [14, 239, 233] # color yellow
 
 
-    # Retrieve the hidden information from the finalPrint
+    ''' Retrieve the hidden information from the finalPrint '''
     bits = np.zeros((7, 27), dtype=np.uint8)
 
     # Find each yellow pixel that corresponds to a bit in bits
@@ -75,7 +72,7 @@ def PrinterHiding(serial, image, grayscale):
     second = int("".join([str(i) for i in bits[5]]).replace(' ', ''), 2)
     serialNumber = int("".join([str(i) for i in bits[6]]).replace(' ', ''), 2)
 
-    # Save the information in readable form
+    # Save the information in readable string form
     hiddenInfo = str(day) + "/" + str(month) + "/" + str(year) + " " + str(hour) + ":" + str(minute) + ":" + str(second) + " #" + str(serialNumber)
 
     return [hiddenPrint, finalPrint, hiddenInfo]

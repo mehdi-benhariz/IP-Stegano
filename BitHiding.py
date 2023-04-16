@@ -36,19 +36,17 @@ def BitHiding(image1, image2, bits):
     for i in range(height):
         for j in range(width):
             # Take the least significant bits from image1
-            bin1 = [int(image1[i, j, 0] % 2**bits), int(image1[i, j, 1] %
-                                                        2**bits), int(image1[i, j, 2] % 2**bits)]
+            bin1 = image1[i, j] % 2**bits
 
             # Take the most significant bits from image2
-            bin2 = [int(image2[i, j, 0] * 2**bits / 256), int(image2[i, j, 1]
-                                                              * 2**bits / 256), int(image2[i, j, 2] * 2**bits / 256)]
+            bin2 = [int(image2[i, j, 0] * 2**bits / 256), int(image2[i, j, 1] * 2**bits / 256), int(image2[i, j, 2] * 2**bits / 256)]
 
             # Assign the most significant bits from image 2 into the least significant bits of image 1
             newImage1[i, j, 0] = image1[i, j, 0] - bin1[0] + bin2[0]
             newImage1[i, j, 1] = image1[i, j, 1] - bin1[1] + bin2[1]
             newImage1[i, j, 2] = image1[i, j, 2] - bin1[2] + bin2[2]
 
-    # Create the new second image
+    '''Create the new second image'''
     # Notice how this image is created using solely from information contained in the first image
     newImage2 = np.array(newImage1 % 2**bits * 256 / 2**bits, dtype=np.uint8)
 

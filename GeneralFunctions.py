@@ -1,7 +1,7 @@
 import numpy as np
 from datetime import datetime
 
-# This is for any general functions that could be applied across different steganography things
+# This is for any general functions that could be applied across different steganography methods
 
 # Histogram equalization
 def equalize_histogram(image):
@@ -10,7 +10,7 @@ def equalize_histogram(image):
     intensities = np.uint8(np.round(255. * cdf))
     return intensities[image]
 
-# Get the day, month, year, hour, minute, and second
+# Get the day, month, year, hour, minute, and second with the option to format the data in binary form
 def parseDateTime(binaryDigits = 0):
 
     dateTime = []

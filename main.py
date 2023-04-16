@@ -3,7 +3,7 @@ from cv2 import IMREAD_GRAYSCALE
 import numpy as np
 import tkinter as tk
 from tkinter import StringVar, filedialog, ttk, END
-import BitHiding, BitHidingGrayscale, PrinterHiding
+import BitHiding, BitHidingGrayscale, PrinterHiding, SecretSharing
 
 # Tkinter documentation:
 # https://www.pythontutorial.net/tkinter/
@@ -23,7 +23,8 @@ class SteganographyApp:
             "Color Bit Hiding",
             "Grayscale Bit Hiding",
             "Image Originality Token",
-            "Hidden Printer Info"
+            "Hidden Printer Info",
+            "Visual Secret Sharing"
         ]
         selected = StringVar()
         selected.set(options[0])
@@ -108,7 +109,7 @@ class SteganographyApp:
                         button1.config(text="Select Color Image", command=self.upload_image1)
                         button2.config(text="Select Grayscale Image", command=self.upload_grayscale_image, wraplength= 100)
                         button3.config(text="Run", command=self.runBitHiderGrayscale)
-                        label.config(text="Enter one or bits to use for the grayscale image")
+                        label.config(text="Enter one or two bits to use for the grayscale image")
                         button4.grid_forget()
                     case "Image Originality Token":
                         button1.config(text="Load Image", command=self.load_image)
@@ -122,7 +123,13 @@ class SteganographyApp:
                         button3.config(text="Run", command=self.runPrinterHiding)
                         label.config(text="Enter: \"X ########\" where # is serial number of printer and X is G for grayscale, C for color")
                         button4.grid_forget()
-        
+                    case "Visual Secret Sharing":
+                        button1.config(text="Select Grayscale Image", command=self.upload_grayscale_image)
+                        label.config(text="Enter the number of shared images to use.")
+                        button2.config(text="Run", command=self.runSecretSharing)
+                        button3.grid_forget()
+                        button4.grid_forget()
+
         # Event handler that will run the updateButtons function upon combobox change
         dropdown.bind('<<ComboboxSelected>>', updateButtons)
 
@@ -210,6 +217,23 @@ class SteganographyApp:
             cv2.imshow("Original and Printed Copy", np.concatenate([image1, cv2.cvtColor(printerHiding[0], cv2.COLOR_GRAY2BGR), printerHiding[1]], axis=1))
             cv2.waitKey(0)
             cv2.destroyAllWindows()
+
+    def runSecretSharing(self):
+        shares = SecretSharing.SecretSharing(imageGrayscale, int(textBox))
+        height, width = imageGrayscale.shape[:2]
+
+        # Combine all the shares together into one image to make viewing it nicer
+        combinedShares = np.zeros((height*(int(textBox)), width), dtype=np.uint8)
+        for i in range(int(textBox)):
+            combinedShares[height * i:height * (i + 1)] = shares[0][i]
+
+        cv2.imshow("Noisy shares", combinedShares)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        cv2.imshow("Image created from two random shares", shares[1])
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 def open_verify_window(self):
     verify_window = tk.Toplevel(self.master)

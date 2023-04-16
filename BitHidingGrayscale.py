@@ -38,8 +38,7 @@ def BitHidingGrayscale(image1, image2, bits):
             pixelIntensity = format(int(image2[i, j] // (256 / (2**bits)**3)), '08b')
             
             # Take the least significant bits from image1 and store them in bin1
-            bin1 = [int(image1[i, j, 0] % 2**bits), int(image1[i, j, 1] %
-                                                        2**bits), int(image1[i, j, 2] % 2**bits)]
+            bin1 = image1[i, j] % 2**bits
             
             # Take the corresponding binary bits for the given pixel intensity and splice it into thirds, placing that into bin2
             # ex. If using only 1 bit, then this splits 00000110 in binary into 1, 1, and 0   
@@ -51,13 +50,12 @@ def BitHidingGrayscale(image1, image2, bits):
             newImage1[i, j, 1] = image1[i, j, 1] - bin1[1] + bin2[1]
             newImage1[i, j, 2] = image1[i, j, 2] - bin1[2] + bin2[2]
 
-    # Create the new second image
+    '''Create the new second image'''
     # Notice how this image is created using solely from information contained in the first image
     for i in range(width):
         for j in range(height):
-
             # Retrieve the bits from the color channels
-            bin3 = [int(newImage1[i, j, 0] % 2**bits), int(newImage1[i, j, 1] % 2**bits), int(newImage1[i, j, 2] % 2**bits)]    
+            bin3 = newImage1[i, j] % 2**bits    
 
             # Assign an intensity level using the retrieved bits      
             newImage2[i,j] = int((bin3[0] * 2**(bits * 2) + bin3[1] * 2**bits + bin3[2])) * (256 / (2**bits)**3)
