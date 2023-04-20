@@ -1,12 +1,11 @@
+import cv2
+from cv2 import IMREAD_GRAYSCALE
+import numpy as np
 import tkinter as tk
 from tkinter import StringVar, filedialog, ttk, END
 import BitHiding
 import BitHidingGrayscale
 import PrinterHiding
-import SecretSharing
-
-# Tkinter documentation:
-# https://www.pythontutorial.net/tkinter/
 
 
 class SteganographyApp:
@@ -24,8 +23,7 @@ class SteganographyApp:
             "Color Bit Hiding",
             "Grayscale Bit Hiding",
             "Image Originality Token",
-            "Hidden Printer Info",
-            "Visual Secret Sharing"
+            "Hidden Printer Info"
         ]
         selected = StringVar()
         selected.set(options[0])
@@ -119,7 +117,7 @@ class SteganographyApp:
                         button3.config(
                             text="Run", command=self.runBitHiderGrayscale)
                         label.config(
-                            text="Enter one or two bits to use for the grayscale image")
+                            text="Enter one or bits to use for the grayscale image")
                         button4.grid_forget()
                     case "Image Originality Token":
                         button1.config(text="Load Image",
@@ -141,15 +139,6 @@ class SteganographyApp:
                             text="Run", command=self.runPrinterHiding)
                         label.config(
                             text="Enter: \"X ########\" where # is serial number of printer and X is G for grayscale, C for color")
-                        button4.grid_forget()
-                    case "Visual Secret Sharing":
-                        button1.config(text="Select Grayscale Image",
-                                       command=self.upload_grayscale_image)
-                        label.config(
-                            text="Enter the number of shared images to use.")
-                        button2.config(
-                            text="Run", command=self.runSecretSharing)
-                        button3.grid_forget()
                         button4.grid_forget()
 
         # Event handler that will run the updateButtons function upon combobox change
@@ -248,60 +237,35 @@ class SteganographyApp:
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
-    def runSecretSharing(self):
-        shares = SecretSharing.SecretSharing(imageGrayscale, int(textBox))
-        height, width = imageGrayscale.shape[:2]
+    def open_verify_window(self):
+        verify_window = tk.Toplevel(self.master)
+        verify_window.title("Verify Images")
+        verify_window.geometry("600x400")
 
-        # Combine all the shares together into one image to make viewing it nicer
-        combinedShares = np.zeros(
-            (height*(int(textBox)), width), dtype=np.uint8)
-        for i in range(int(textBox)):
-            combinedShares[height * i:height * (i + 1)] = shares[0][i]
+        # create two buttons to upload the two images
+        button_width = 20
+        button_height = 5
+        image1_button = tk.Button(
+            verify_window, text="Upload Image 1", command=self.upload_image1, bg="#4CAF50", fg="white",
+            width=button_width, height=button_height)
+        image1_button.grid(row=0, column=0, padx=10, pady=10)
 
-        cv2.imshow("Noisy shares", combinedShares)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        image2_button = tk.Button(
+            verify_window, text="Upload Image 2", command=self.upload_image2, bg="#2196F3", fg="white",
+            width=button_width, height=button_height)
+        image2_button.grid(row=0, column=1, padx=10, pady=10)
 
-        cv2.imshow("Image created from two random shares", shares[1])
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        self.image1_label = tk.Label(verify_window, text="", bg="white")
+        self.image1_label.grid(row=1, column=0, padx=10, pady=10)
 
+        self.image2_label = tk.Label(verify_window, text="", bg="white")
+        self.image2_label.grid(row=1, column=1, padx=10, pady=10)
 
-def open_verify_window(self):
-    verify_window = tk.Toplevel(self.master)
-    verify_window.title("Verify Images")
-    verify_window.geometry("600x400")
+        verify_button = tk.Button(
+            verify_window, text="Verify", command=self.verify_images, bg="#9C27B0", fg="white",
+            width=button_width, height=button_height)
+        verify_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 
-    # create two buttons to upload the two images
-    button_width = 20
-    button_height = 5
-    image1_button = tk.Button(
-        verify_window, text="Upload Image 1", command=self.upload_image1, bg="#4CAF50", fg="white",
-        width=button_width, height=button_height)
-    image1_button.grid(row=0, column=0, padx=10, pady=10)
-
-    image2_button = tk.Button(
-        verify_window, text="Upload Image 2", command=self.upload_image2, bg="#2196F3", fg="white",
-        width=button_width, height=button_height)
-    image2_button.grid(row=0, column=1, padx=10, pady=10)
-
-    self.image1_label = tk.Label(verify_window, text="", bg="white")
-    self.image1_label.grid(row=1, column=0, padx=10, pady=10)
-
-    self.image2_label = tk.Label(verify_window, text="", bg="white")
-    self.image2_label.grid(row=1, column=1, padx=10, pady=10)
-
-    verify_button = tk.Button(
-        verify_window, text="Verify", command=self.verify_images, bg="#9C27B0", fg="white",
-        width=button_width, height=button_height)
-    verify_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
-
-
-def verify_images(self):
-    # TODO finish this function
-    pass
-
-
-root = tk.Tk()
-app = SteganographyApp(root)
-root.mainloop()
+    def verify_images(self):
+        # TODO finish this function
+        pass
