@@ -1,9 +1,8 @@
 import cv2
-from cv2 import IMREAD_GRAYSCALE
 import numpy as np
 import tkinter as tk
 from tkinter import StringVar, filedialog, ttk, END
-import BitHiding, BitHidingGrayscale, PrinterHiding, SecretSharing
+import BitHiding, BitHidingGrayscale, PrinterHiding, SecretSharing, dctMessage
 
 # Tkinter documentation:
 # https://www.pythontutorial.net/tkinter/
@@ -24,7 +23,8 @@ class SteganographyApp:
             "Grayscale Bit Hiding",
             "Image Originality Token",
             "Hidden Printer Info",
-            "Visual Secret Sharing"
+            "Visual Secret Sharing",
+            "Message in DCT"
         ]
         selected = StringVar()
         selected.set(options[0])
@@ -129,6 +129,12 @@ class SteganographyApp:
                         button2.config(text="Run", command=self.runSecretSharing)
                         button3.grid_forget()
                         button4.grid_forget()
+                    case "Message in DCT":
+                        button1.config(text="Select Grayscale Image", command=self.upload_grayscale_image)
+                        label.config(text="Enter the message to hide in the dct.")
+                        button2.config(text="Run", command=self.runDCTMessage)
+                        button3.grid_forget()
+                        button4.grid_forget()
 
         # Event handler that will run the updateButtons function upon combobox change
         dropdown.bind('<<ComboboxSelected>>', updateButtons)
@@ -176,7 +182,7 @@ class SteganographyApp:
     def upload_grayscale_image(self):
         global imageGrayscale
         filename = filedialog.askopenfilename()
-        imageGrayscale = cv2.imread(filename, IMREAD_GRAYSCALE)
+        imageGrayscale = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
         # TODO Have the image appear on the GUI?
 
     def runBitHider(self):
@@ -234,6 +240,16 @@ class SteganographyApp:
         cv2.imshow("Image created from two random shares", shares[1])
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+    def runDCTMessage(self):
+
+        dctMsg = dctMessage.dctMessage(imageGrayscale, textBox)
+
+        cv2.imshow("Original Image, DCT Modified Image", np.concatenate([imageGrayscale, np.uint8(np.round(dctMsg[0]))], axis=1))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        print(dctMsg[1])
 
 def open_verify_window(self):
     verify_window = tk.Toplevel(self.master)
