@@ -29,7 +29,10 @@ def dctMessage(image, message_):
     bitHidingLocation = random.randint(0, 63)
 
     # Randomly get the first 8x8 position in the image to begin hiding the message in
-    firstPosition = random.randint(0, int(height * width / 64) - 1)
+
+    # Note- division should be by 64, but that sometimes causes an error
+    # The easiest way to resolve this bug is by decreasing the range of the starting position (hence, divide by 128)
+    firstPosition = random.randint(0, int(height * width / 128) - 1)
 
     # 15 most frequently used letters in the English language
     replacementLetters = ['a', 'c', 'd', 'e', 'f', 'h', 'i', 'l', 'm', 'n', 'o', 'r', 's', 't', 'u']
@@ -49,8 +52,8 @@ def dctMessage(image, message_):
         for j in range(2):
 
             # Get the selected 8x8 block, originally starting at the randomized firstPosition
-            selection = dctImage[(firstPosition // 8 + i * 8) % height:(firstPosition // 8 + i * 8) % height + 8, (firstPosition % 8 + j * 8) % width:(firstPosition % 8 + j * 8) % width + 8]
-            
+            selection = dctImage[(firstPosition // 8 + i * 8) % height:(firstPosition // 8 + i * 8 + 8) % height, (firstPosition % 8 + j * 8) % width:(firstPosition % 8 + j * 8 + 8) % width]
+
             # Retrieve the specific value at the randomized BitHidingLocation
             value = selection[bitHidingLocation // 8, bitHidingLocation % 8]
 
@@ -85,7 +88,7 @@ def dctMessage(image, message_):
     # Retrieve the message
     for i in range(len(message)):
 
-        # Temporary string to hold the binary values of the 
+        # Temporary string to hold the binary values of the message
         tempStr = ""
         for j in range(2):
 

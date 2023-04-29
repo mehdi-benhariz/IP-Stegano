@@ -60,11 +60,11 @@ def SecretSharing(image, shares):
             random.shuffle(bitValues)
 
             for k in range(shares):
-                # If pixel is white, assign it the random bit value
+                # If pixel is black, assign it the random bit value
                 if image[i, j] == 0:
                     shareImages[k][i, j] = bitValues[k]
 
-                # If pixel is not black, we use the same randomized bit value for each share's pixel
+                # If pixel is white, we use the same randomized bit value for each share's pixel
                 else:
                     shareImages[k][i, j] = bitValues[0]
 
@@ -77,13 +77,13 @@ def SecretSharing(image, shares):
     restoredImage = np.zeros((height, width), dtype=np.uint8)
 
     # Just to prove that the original can be retrieved with any two of the shares, let's randomize which shares are compared
-    randomBit1 = 0
-    randomBit2 = 0
-    while randomBit1 == randomBit2:
-        randomBit1 = random.randint(0, shares - 1)
-        randomBit2 = random.randint(0, shares - 1)
+    randomShare1 = 0
+    randomShare2 = 0
+    while randomShare1 == randomShare2:
+        randomShare1 = random.randint(0, shares - 1)
+        randomShare2 = random.randint(0, shares - 1)
 
     # Any pixels that are equal should be white
-    restoredImage[shareImages[randomBit1] == shareImages[randomBit2]] = 255
+    restoredImage[shareImages[randomShare1] == shareImages[randomShare2]] = 255
 
     return shareImages, restoredImage
