@@ -7,7 +7,7 @@ import BitHidingGrayscale
 import PrinterHiding
 import SecretSharing
 import dctMessage
-
+from TextHiding import hide_text_in_image, extract_text_from_image
 # Tkinter documentation:
 # https://www.pythontutorial.net/tkinter/
 
@@ -47,6 +47,8 @@ class SteganographyApp:
         textEntry.trace("w", lambda name, index, mode,
                         textEntry=textEntry: modifyText(textEntry))
 
+        self.image_1 = None
+        self.image_2 = None
         # TODO This doesn't work for styling the ComboBox... documentation didn't really help. I'll look into it later
         # self.style = ttk.Style(self)
         # self.style.configure('TCombobox', bg="#ff0000", fg="white", width=button_width, height=button_height)
@@ -106,6 +108,7 @@ class SteganographyApp:
 
                 # Depending on which dropdown option is selected, switch the buttons labels and functions appropriately
                 match dropdown.get():
+
                     case "Color Bit Hiding":
                         button1.config(text="Select Image 1",
                                        command=self.upload_image1)
@@ -125,6 +128,7 @@ class SteganographyApp:
                         label.config(
                             text="Enter one or two bits to use for the grayscale image")
                         button4.grid_forget()
+                    # TODO: work on this
                     case "Image Originality Token":
                         button1.config(text="Load Image",
                                        command=self.load_image)
@@ -170,15 +174,28 @@ class SteganographyApp:
     def load_image(self):
         filename = filedialog.askopenfilename()
         image = cv2.imread(filename)
+        print("Load Image:", image)
+        self.image_1 = image
         # TODO display the image in the GUI
 
     def write_text(self):
         text = textBox
         print("Write Text:", text)
         # TODO get the text message from the input field in the GUI
+        if (text == ""):
+            print("No text entered")
+            return
+        # TODO check if the image is loaded and dispaly it in the GUI
+
+        cv2.imshow("Image", self.image_1)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        secret_image = hide_text_in_image(self.image_1, text)
+        cv2.imwrite("secret_image.png", secret_image)
 
     def generate_token(self):
         print("Generate Token")
+        text = text_entry.get()
         # TODO finish this function
 
     def open_verify_window(self):
