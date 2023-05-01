@@ -3,94 +3,47 @@ import numpy as np
 import os
 
 
-def to_bin(data):
-    """Convert `data` to binary format as string"""
-    if isinstance(data, str):
-        return ''.join([format(ord(i), "08b") for i in data])
-    elif isinstance(data, bytes):
-        return ''.join([format(i, "08b") for i in data])
-    elif isinstance(data, np.ndarray):
-        return [format(i, "08b") for i in data]
-    elif isinstance(data, int) or isinstance(data, np.uint8):
-        return format(data, "08b")
-    else:
-        raise TypeError("Type not supported.")
+def hide_text_in_image(image, secret_text):
+    # Convert secret text to binary string
+    secret_bin = ''.join(format(ord(c), '08b')
+                         for c in secret_text) + '11111111'
+
+    # Modify least significant bit of each pixel in image to embed secret message
+    flat_image = image.ravel()
+    for i, bit in enumerate(secret_bin):
+        if i >= len(flat_image) * 0.75:
+            break
+        flat_image[i] = (flat_image[i] & 254) | int(bit)
+
+    # Reshape modified image back to original dimensions
+    return flat_image.reshape(image.shape)
 
 
-def encode(image, secret_data, n_bits=2):
-    # maximum bytes to encode
-    n_bytes = image.shape[0] * image.shape[1] * 3 * n_bits // 8
-    print("[*] Maximum bytes to encode:", n_bytes)
-    print("[*] Data size:", len(secret_data))
-    if len(secret_data) > n_bytes:
-        raise ValueError(
-            f"[!] Insufficient bytes ({len(secret_data)}), need bigger image or less data.")
-    print("[*] Encoding data...")
-    # add stopping criteria
-    if isinstance(secret_data, str):
-        secret_data += "====="
-    elif isinstance(secret_data, bytes):
-        secret_data += b"====="
-    # convert data to binary
-    binary_secret_data = to_bin(secret_data)
-    # size of data to hide
-    data_len = len(binary_secret_data)
-    # use numpy functions for faster operations
-    pixel_iter = np.nditer(image, flags=['multi_index'])
-    for bit in range(n_bits):
-        for pixel in pixel_iter:
-            # modify the least significant bit only if there is still data to store
-            if pixel_iter.multi_index[0] < data_len:
-                pixel_bits = to_bin(pixel)
-                # set the least significant bit of the pixel to the data bit
-                pixel_bits[bit] = binary_secret_data[pixel_iter.multi_index[0]]
-                # convert binary back to integer representation
-                pixel_int = np.packbits(pixel_bits).astype(np.uint8)
-                # update the pixel value in the image
-                pixel[...] = pixel_int
-            # if data is encoded, just break out of the loop
-            if pixel_iter.multi_index[0] >= data_len:
-                break
-    return image
+def extract_text_from_image(image):
+    # Extract least significant bit of each pixel in image
+    flat_image = image.ravel()
+    secret_bin = ''
+    for pixel in flat_image:
+        secret_bin += str(pixel & 1)
+
+    # Convert binary string to text
+    secret_text = ''
+    for i in range(0, len(secret_bin), 8):
+        byte = secret_bin[i:i+8]
+        if byte == '11111111':
+            break
+        secret_text += chr(int(byte, 2))
+
+    return secret_text
 
 
-def decode(image_name, n_bits=1, in_bytes=False):
-    print("[+] Decoding...")
-    # read the image
-    image = cv2.imread(image_name)
-    binary_data = ""
-    for bit in range(1, n_bits+1):
-        for row in image:
-            for pixel in row:
-                r, g, b = to_bin(pixel)
-                binary_data += r[-bit]
-                binary_data += g[-bit]
-                binary_data += b[-bit]
-    # split by 8-bits
-    all_bytes = [binary_data[i: i+8] for i in range(0, len(binary_data), 8)]
-    # convert from bits to characters
-    if in_bytes:
-        # if the data we'll decode is binary data,
-        # we initialize bytearray instead of string
-        decoded_data = bytearray()
-        for byte in all_bytes:
-            # append the data after converting from binary
-            decoded_data.append(int(byte, 2))
-            if decoded_data[-5:] == b"=====":
-                # exit out of the loop if we find the stopping criteria
-                break
-    else:
-        decoded_data = ""
-        for byte in all_bytes:
-            decoded_data += chr(int(byte, 2))
-            if decoded_data[-5:] == "=====":
-                break
-    return decoded_data[:-5]
-
-
-image = cv2.imread("peppers_color.tif")
-secret_img = encode(image, "Hello Mehdi", n_bits=2)
-
-cv2.imwrite("encoded.png", secret_img)
-
-print(decode("encoded.png", n_bits=2))
+# * hide the text in the image
+# img = cv2.imread('peppers_color.tif')
+# secret_text = "This is a secret message!"
+# steg_img = hide_text_in_image(img, secret_text)
+# cv2.imwrite('steg_peppers.png', steg_img)
+# cv2.imshow('steg_peppers.png', steg_img)
+# * extract the text from the image
+# hidden_img = cv2.imread('steg_peppers.png')
+# hidden_text = extract_text_from_image(hidden_img)
+# print(hidden_text)
