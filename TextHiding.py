@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import os
 
 
 def hide_text_in_image(image, secret_text):
