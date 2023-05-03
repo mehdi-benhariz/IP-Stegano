@@ -200,7 +200,7 @@ class SteganographyApp:
 
     def open_verify_window(self):
         verify_window = tk.Toplevel(self.master)
-        verify_window.title("Verify Images")
+        verify_window.title("Verifying Images...")
         verify_window.geometry("400x200")
 
         # create two buttons to upload the two images

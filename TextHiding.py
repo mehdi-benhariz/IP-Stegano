@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 
+# *Using LSB
 def hide_text_in_image(image, secret_text):
     # Convert secret text to binary string
     secret_bin = ''.join(format(ord(c), '08b')
