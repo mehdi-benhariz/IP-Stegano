@@ -181,7 +181,7 @@ class SteganographyApp:
     def write_text(self):
         text = textBox
         print("Write Text:", text)
-        # TODO get the text message from the input field in the GUI
+
         if (text == ""):
             print("No text entered")
             return
@@ -212,6 +212,11 @@ class SteganographyApp:
             verify_window, text="Upload Image 2", command=self.upload_image2)
         image2_button.pack(pady=10)
 
+        # create a button to run the verification
+        verify_button = tk.Button(
+            verify_window, text="Verify", command=self.verify_images)
+        verify_button.pack(pady=10)
+
     def upload_image1(self):
         global image1
         filename = filedialog.askopenfilename()
@@ -229,6 +234,17 @@ class SteganographyApp:
         filename = filedialog.askopenfilename()
         imageGrayscale = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
         # TODO Have the image appear on the GUI?
+
+    def verify_images(self):
+        print("Verify Images")
+        text_1 = extract_text_from_image(image1)
+        text_2 = extract_text_from_image(image2)
+        print("Text 1:", text_1)
+        print("Text 2:", text_2)
+        if (text_1 == text_2):
+            print("Images are the same")
+        else:
+            print("Images are different")
 
     def runBitHider(self):
         bitHidingResult = BitHiding.BitHiding(image1, image2, int(textBox))

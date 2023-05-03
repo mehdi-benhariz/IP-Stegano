@@ -43,6 +43,7 @@ def extract_text_from_image(image):
 # cv2.imwrite('steg_peppers.png', steg_img)
 # cv2.imshow('steg_peppers.png', steg_img)
 # * extract the text from the image
-hidden_img = cv2.imread('steg_peppers.png')
+# hidden_img = cv2.imread('steg_peppers.png')
+hidden_img = cv2.imread('secret_image.png')
 hidden_text = extract_text_from_image(hidden_img)
 print(hidden_text)
