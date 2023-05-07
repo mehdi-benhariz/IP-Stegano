@@ -39,7 +39,8 @@ def BitHiding(image1, image2, bits):
             bin1 = image1[i, j] % 2**bits
 
             # Take the most significant bits from image2
-            bin2 = [int(image2[i, j, 0] * 2**bits / 256), int(image2[i, j, 1] * 2**bits / 256), int(image2[i, j, 2] * 2**bits / 256)]
+            bin2 = [int(image2[i, j, 0] * 2**bits / 256), int(image2[i, j, 1]
+                                                              * 2**bits / 256), int(image2[i, j, 2] * 2**bits / 256)]
 
             # Assign the most significant bits from image 2 into the least significant bits of image 1
             newImage1[i, j, 0] = image1[i, j, 0] - bin1[0] + bin2[0]
@@ -51,6 +52,19 @@ def BitHiding(image1, image2, bits):
     newImage2 = np.array(newImage1 % 2**bits * 256 / 2**bits, dtype=np.uint8)
 
     # Take a weighted average of the newImage2 and the histogram equalized newImage2
-    modifiedImage2 = GeneralFunctions.equalize_histogram(newImage2) // 3 + newImage2 // 2
+    modifiedImage2 = GeneralFunctions.equalize_histogram(
+        newImage2) // 3 + newImage2 // 2
 
     return [newImage1, newImage2, modifiedImage2]
+
+
+def extract_img_from_img(container_image, bits):
+    # Notice how this image is created using solely from information contained in the first image
+    new_image = np.array(container_image % 2**bits *
+                         256 / 2**bits, dtype=np.uint8)
+
+    # Take a weighted average of the newImage2 and the histogram equalized newImage2
+    modifiedImage2 = GeneralFunctions.equalize_histogram(
+        new_image) // 3 + new_image // 2
+
+    return [new_image, modifiedImage2]
