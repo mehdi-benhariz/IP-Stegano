@@ -100,5 +100,3 @@ def dctMessage(image, message_):
 
 
     return hiddenMsgImage, retrievedMessage
-
-
