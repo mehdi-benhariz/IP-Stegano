@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import tkinter as tk
-from tkinter import StringVar, filedialog, ttk, END
+from tkinter import StringVar, filedialog, ttk, END ,messagebox
 import BitHiding
 import BitHidingGrayscale
 import PrinterHiding
@@ -221,20 +221,19 @@ class SteganographyApp:
         global image1
         filename = filedialog.askopenfilename()
         image1 = cv2.imread(filename)
-        # TODO Have the image appear on the GUI?
+        cv2.waitKey(0)
 
     def upload_image2(self):
         global image2
         filename = filedialog.askopenfilename()
         image2 = cv2.imread(filename)
-        # TODO Have the image appear on the GUI?
+        cv2.waitKey(0)
 
     def upload_grayscale_image(self):
         global imageGrayscale
         filename = filedialog.askopenfilename()
         imageGrayscale = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-        # TODO Have the image appear on the GUI?
-
+    
     def verify_images(self):
         print("Verify Images")
         text_1 = extract_text_from_image(image1)
@@ -242,10 +241,10 @@ class SteganographyApp:
         print("Text 1:", text_1)
         print("Text 2:", text_2)
         if (text_1 == text_2):
-            print("Images are the same")
+            messagebox.showinfo("Result", "Images are the same")
         else:
-            print("Images are different")
-
+            messagebox.showinfo("Result", "Images are different")
+        cv2.destroyAllWindows()
     def runBitHider(self):
         bitHidingResult = BitHiding.BitHiding(image1, image2, int(textBox))
         cv2.imshow("Original 1, Bit Modified 1", np.concatenate(
