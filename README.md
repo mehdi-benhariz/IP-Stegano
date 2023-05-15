@@ -2,4 +2,5 @@
 
 ## Presentation
 
-A bried Presentation was made to facilate to clearify the project [PDF file](/Image Steganography.pdf) 
+A brief Presentation was made to facilitate to clarify the project [PDF file](/Image%20Steganography.pdf) 
+
