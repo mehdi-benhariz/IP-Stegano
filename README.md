@@ -1,11 +1,11 @@
 # IP-Stegano
 
-IP-Stegano is a Python project that allows users to hide text messages inside images using the least significant bit (LSB) technique. The project is developed using the OpenCV and NumPy libraries.
+IP-Stegano is an image processing project that allows users to hide data inside a file (mainly images) using different technic and approaches. The project is developed using the OpenCV and NumPy libraries.
 
 ## Description
 
-The project provides a command-line interface that allows users to encode a text message into an image and decode a text message from an encoded image. The encoded image looks the same as the original image to the human eye and can be shared over public channels.
-
+The project provides a GUI interface that allows users to perferm various operations( described in the presentation below) on images.
+such as :
 The project has some sample images that can be used for testing purposes. However, users can also use their own images.
 
 ## Installation
