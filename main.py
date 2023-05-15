@@ -176,7 +176,6 @@ class SteganographyApp:
         image = cv2.imread(filename)
         print("Load Image:", image)
         self.image_1 = image
-        # TODO display the image in the GUI
 
     def write_text(self):
         text = textBox
